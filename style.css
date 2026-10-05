@@ -1263,3 +1263,61 @@ body {
     border: 1px solid #000;
   }
 }
+
+/* Mobile Responsiveness Fixes */
+@media (max-width: 768px) {
+  body {
+    padding: 12px 10px 40px;
+  }
+
+  .app-container {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .modern-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  .app-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 20px;
+  }
+
+  .form-grid-2,
+  .form-grid-3,
+  .split-card-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .expense-items-card {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .modern-table {
+    min-width: 500px;
+  }
+
+  * {
+    max-width: 100vw;
+  }
+  
+  /* Reset max-width for elements that might need to be wider in scrollable containers */
+  .modern-table * {
+    max-width: none;
+  }
+}
