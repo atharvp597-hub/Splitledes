@@ -236,6 +236,11 @@
     DOM.settlementCount           = g('settlementCount');
     DOM.noteTopPayer              = g('noteTopPayer');
     DOM.noteReconciled            = g('noteReconciled');
+    DOM.noteOptimization          = g('noteOptimization');
+    DOM.noteTrackerRow            = g('noteTrackerRow');
+    DOM.noteTrackerInfo           = g('noteTrackerInfo');
+    DOM.btnThemeToggle            = g('btnThemeToggle');
+    DOM.themeToggleText           = g('themeToggleText');
     DOM.btnCopySummary            = g('btnCopySummary');
     DOM.btnPrintReceipt           = g('btnPrintReceipt');
     DOM.toastNotice               = g('toastNotice');
@@ -258,6 +263,58 @@
     DOM.btnDeleteModalClose       = g('btnDeleteModalClose');
     DOM.btnDeleteModalCancel      = g('btnDeleteModalCancel');
     DOM.btnDeleteModalConfirm     = g('btnDeleteModalConfirm');
+  }
+
+  // ─── Theme System ─────────────────────────────────────────────────────────────
+  const STORAGE_KEY_THEME = 'splitledger_theme';
+
+  function initTheme() {
+    try {
+      const savedTheme = localStorage.getItem(STORAGE_KEY_THEME);
+      if (savedTheme === 'dark') {
+        applyTheme('dark', false);
+      } else if (savedTheme === 'light') {
+        applyTheme('light', false);
+      } else {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(prefersDark ? 'dark' : 'light', false);
+      }
+    } catch (e) {
+      applyTheme('light', false);
+    }
+  }
+
+  function applyTheme(theme, notify = true) {
+    const isDark = theme === 'dark';
+    if (isDark) {
+      document.documentElement.classList.add('dark-theme');
+      document.documentElement.classList.remove('light-theme');
+      document.body.classList.add('dark-theme');
+      document.body.classList.remove('light-theme');
+      if (DOM.themeToggleText) DOM.themeToggleText.textContent = 'Day Mode';
+      if (DOM.btnThemeToggle) DOM.btnThemeToggle.setAttribute('title', 'Switch to Day Mode');
+    } else {
+      document.documentElement.classList.add('light-theme');
+      document.documentElement.classList.remove('dark-theme');
+      document.body.classList.add('light-theme');
+      document.body.classList.remove('dark-theme');
+      if (DOM.themeToggleText) DOM.themeToggleText.textContent = 'Night Mode';
+      if (DOM.btnThemeToggle) DOM.btnThemeToggle.setAttribute('title', 'Switch to Night Mode');
+    }
+
+    try {
+      localStorage.setItem(STORAGE_KEY_THEME, theme);
+    } catch (e) { /* silent */ }
+
+    if (notify) {
+      showToast(`Switched to ${isDark ? 'Night (Dark)' : 'Day (Light)'} Mode.`);
+    }
+  }
+
+  function toggleTheme() {
+    const isDark = document.body.classList.contains('dark-theme') ||
+      (!document.body.classList.contains('light-theme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    applyTheme(isDark ? 'light' : 'dark', true);
   }
 
   // ─── Persistence ─────────────────────────────────────────────────────────────
@@ -1113,24 +1170,71 @@
   }
 
   function updateSmartInsights(data) {
+    // 1. Top Payer & Contribution insight
     let maxPaid = -1, topPayer = null;
+    let totalPaidSum = 0, payersCount = 0;
     data.breakdowns.forEach((p) => {
+      totalPaidSum += p.paid;
+      if (p.paid > 0) payersCount++;
       if (p.paid > maxPaid) { maxPaid = p.paid; topPayer = p.name; }
     });
 
     if (DOM.noteTopPayer) {
-      if (maxPaid > 0 && topPayer) {
+      if (state.payerType === 'none') {
+        const shareVal = data.breakdowns[0]?.share || 0;
         DOM.noteTopPayer.textContent =
-          `${topPayer} paid the most (${fmt(maxPaid)}), covering ${Math.round((maxPaid / (data.totalBill || 1)) * 100)}% of the total cost.`;
+          `Equal Split Mode: No upfront individual payments recorded. All ${data.numPeople} friends owe ${fmt(shareVal)} each.`;
+      } else if (state.payerType === 'single') {
+        const singlePayer = data.breakdowns[state.singlePayerIndex]?.name || topPayer || 'Primary Payer';
+        DOM.noteTopPayer.textContent =
+          `Single Payer Mode: ${singlePayer} paid 100% of the total bill (${fmt(data.totalBill)}) upfront for all ${data.numPeople} people.`;
+      } else if (maxPaid > 0 && topPayer) {
+        const pct = Math.round((maxPaid / (data.totalBill || 1)) * 100);
+        DOM.noteTopPayer.textContent =
+          `Multi-Payer Contribution: ${topPayer} paid the highest amount (${fmt(maxPaid)}, ${pct}% of total), leading ${payersCount} total contributor${payersCount === 1 ? '' : 's'}.`;
       } else {
         DOM.noteTopPayer.textContent =
           `All ${data.numPeople} friends owe equal shares of ${fmt(data.breakdowns[0]?.share || 0)}.`;
       }
     }
 
+    // 2. Reconciliation & Penny Audit insight
     if (DOM.noteReconciled) {
-      DOM.noteReconciled.textContent =
-        `Reconciliation Verified: Sum of shares (${fmt(data.sumOfShares)}) precisely balances the total bill (${fmt(data.totalBill)}).`;
+      if (data.discrepancy < 0.01) {
+        DOM.noteReconciled.textContent =
+          `Penny Reconciliation Audit: Sum of fair shares (${fmt(data.sumOfShares)}) matches total bill (${fmt(data.totalBill)}) down to 0.00 exact precision.`;
+      } else {
+        DOM.noteReconciled.textContent =
+          `Audit Warning: Discrepancy of ${fmt(data.discrepancy)} detected between total bill (${fmt(data.totalBill)}) and share sum (${fmt(data.sumOfShares)}).`;
+      }
+    }
+
+    // 3. Smart Debt Optimization insight
+    if (DOM.noteOptimization) {
+      if (data.settlements.length === 0) {
+        DOM.noteOptimization.textContent =
+          `Smart Debt Minimization: Everyone is fully settled up! Zero reimbursements or transfers required.`;
+      } else {
+        const possibleTransfers = data.numPeople * (data.numPeople - 1);
+        const sortedTransfers = [...data.settlements].sort((a, b) => b.amount - a.amount);
+        const maxTransfer = sortedTransfers[0];
+        const topTransferStr = maxTransfer ? ` (Largest: ${maxTransfer.from} pays ${fmt(maxTransfer.amount)} to ${maxTransfer.to})` : '';
+        DOM.noteOptimization.textContent =
+          `Smart Debt Minimization: Reduced ${possibleTransfers} potential peer transfers to just ${data.settlements.length} direct settlement${data.settlements.length === 1 ? '' : 's'}${topTransferStr}.`;
+      }
+    }
+
+    // 4. Detailed Expense Tracker Itemization insight
+    if (DOM.noteTrackerRow && DOM.noteTrackerInfo) {
+      if (state.mode === 'expenses' && state.expenses && state.expenses.length > 0) {
+        DOM.noteTrackerRow.style.display = 'flex';
+        const itemCount = state.expenses.length;
+        const avgItem = Math.round((data.totalBill / itemCount) * 100) / 100;
+        DOM.noteTrackerInfo.textContent =
+          `Itemized Tracker: Calculated across ${itemCount} expense item${itemCount === 1 ? '' : 's'}, averaging ${fmt(avgItem)} per line item.`;
+      } else {
+        DOM.noteTrackerRow.style.display = 'none';
+      }
     }
   }
 
@@ -1238,6 +1342,11 @@
         }
       });
     });
+
+    // ── Theme Toggle ──
+    if (DOM.btnThemeToggle) {
+      DOM.btnThemeToggle.addEventListener('click', toggleTheme);
+    }
 
     // ── Currency ──
     DOM.currencySelect.addEventListener('change', (e) => {
@@ -1429,6 +1538,7 @@
 
   function init() {
     initDOM();
+    initTheme();
     loadPersistedData();
     renderSavedGroups();
     syncFormInputsWithState();

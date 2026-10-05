@@ -41,6 +41,12 @@
       </div>
 
       <div class="header-right">
+        <button type="button" id="btnThemeToggle" class="theme-toggle-btn" aria-label="Toggle Light and Dark Theme" title="Switch Theme (Day / Night)">
+          <span class="theme-icon-sun" aria-hidden="true">☀️</span>
+          <span class="theme-icon-moon" aria-hidden="true">🌙</span>
+          <span id="themeToggleText" class="theme-toggle-text">Night Mode</span>
+        </button>
+
         <div class="currency-control">
           <label for="currencySelect">Currency:</label>
           <select id="currencySelect" aria-label="Select Currency">
@@ -439,19 +445,23 @@
           <div class="insights-notes-card">
             <div class="insights-header">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--accent-indigo);"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
-              Smart Insights &amp; Settlement Notes
+              Smart Real-Time Insights &amp; Settlement Audit
             </div>
             <div class="insight-point">
               <span class="insight-bullet">&bull;</span>
-              <span id="noteTopPayer">Primary payer covered majority of expenses.</span>
+              <span id="noteTopPayer">Calculating contribution weights...</span>
             </div>
             <div class="insight-point">
               <span class="insight-bullet">&bull;</span>
-              <span id="noteReconciled">Shares sum exactly matches bill down to 0.00 with fair penny remainder allocation.</span>
+              <span id="noteReconciled">Verifying penny precision reconciliation...</span>
             </div>
             <div class="insight-point">
               <span class="insight-bullet">&bull;</span>
-              <span>All debts simplified to the minimum possible number of cash transfers.</span>
+              <span id="noteOptimization">Analyzing transfer minimization...</span>
+            </div>
+            <div class="insight-point" id="noteTrackerRow" style="display:none;">
+              <span class="insight-bullet">&bull;</span>
+              <span id="noteTrackerInfo"></span>
             </div>
           </div>
 
