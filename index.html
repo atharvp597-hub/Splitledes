@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SplitLedger - Next-Gen Expense Tracker &amp; Bill Splitter</title>
+  <meta name="description" content="A modern, high-precision offline expense tracker and bill splitter with exact penny reconciliation and multi-payer debt settlement.">
+  <meta property="og:title" content="SplitLedger - Expense Tracker &amp; Bill Splitter">
+  <meta property="og:description" content="A modern, high-precision offline expense tracker and bill splitter.">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <!-- Print Receipt Header -->
+  <div style="display:none;" id="printReceiptHeader">
+    <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">SPLITLEDGER OFFICIAL SETTLEMENT RECEIPT</h2>
+    <p style="font-size: 13px; color: #475569; margin-bottom: 16px;">
+      Occasion: <strong id="printOccasionName">Event</strong> &middot; Date: <span id="printReceiptDate"></span>
+    </p>
+  </div>
+
+  <div class="app-container">
+    <!-- Modern Header -->
+    <header class="modern-header">
+      <div class="brand-wrapper">
+        <div class="brand-icon-box" aria-hidden="true">
+          <!-- Geometric Split / Wallet SVG Icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="3"></rect>
+            <path d="M7 15h0M2 10h20"></path>
+            <circle cx="16" cy="15" r="1.5"></circle>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1>
+            SplitLedger
+            <span class="brand-tag">v2.0 Modern</span>
+          </h1>
+          <p class="brand-subtext">Precision Bill Splitter &amp; Multi-Payer Expense Settlement &middot; Zero Code Challenge</p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="currency-control">
+          <label for="currencySelect">Currency:</label>
+          <select id="currencySelect" aria-label="Select Currency">
+            <option value="₹" selected>₹ INR</option>
+            <option value="$">$ USD</option>
+            <option value="€">€ EUR</option>
+            <option value="£">£ GBP</option>
+          </select>
+        </div>
+
+        <div class="offline-badge" title="Operates 100% locally with zero external network calls">
+          <span class="pulse-dot"></span>
+          100% Offline Ready
+        </div>
+      </div>
+    </header>
+
+    <!-- Groups & Ledgers Hub (Editable Permanent Teams & Recurring Lists) -->
+    <section class="groups-hub-strip" aria-label="Groups and Ledgers Hub">
+      <div class="groups-hub-header">
+        <div class="groups-hub-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          My Saved Groups &amp; Ledgers:
+        </div>
+        <div class="groups-controls">
+          <button type="button" id="btnNewGroup" class="button-secondary" style="background: var(--accent-indigo); color: #fff; border-color: var(--accent-indigo); padding: 6px 12px; font-size: 12px;">
+            + New Group / Ledger
+          </button>
+          <button type="button" id="btnSaveCurrentGroup" class="button-secondary" style="padding: 6px 12px; font-size: 12px;" title="Save current members and expenses to this group">
+            💾 Save Changes
+          </button>
+          <button type="button" id="btnEditCurrentGroup" class="button-secondary" style="padding: 6px 12px; font-size: 12px;" title="Edit group name or member list">
+            ✏️ Edit Group
+          </button>
+          <button type="button" id="btnDeleteCurrentGroup" class="button-secondary" style="color: var(--rose-debt); border-color: var(--rose-border); padding: 6px 12px; font-size: 12px;" title="Delete this group">
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+      <div id="savedGroupsList" class="saved-groups-chips-list">
+        <!-- Rendered dynamically by script.js -->
+      </div>
+    </section>
+
+    <!-- Main Grid -->
+    <main class="app-grid">
+      <!-- Left Column: Inputs & Config -->
+      <section class="left-col">
+        <div class="modern-card">
+          <div class="card-topbar">
+            <div class="card-topbar-title">
+              <span class="card-topbar-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+              </span>
+              Event &amp; Expense Configuration
+            </div>
+            <span style="font-size: 11px; font-weight: 700; color: var(--accent-indigo); background: var(--accent-indigo-light); padding: 3px 8px; border-radius: 6px;">Step 1 of 2</span>
+          </div>
+
+          <div class="card-body">
+            <!-- Occasion / Event Name -->
+            <div class="form-field">
+              <label for="occasionInput" class="field-label">
+                <span>Occasion / Event Title</span>
+                <span class="field-hint">e.g. Canteen Dinner, Goa Trip, Cab</span>
+              </label>
+              <input 
+                type="text" 
+                id="occasionInput" 
+                class="modern-input" 
+                placeholder="e.g. IIT Bombay Techfest Bhopal Outing"
+                value="IIT Bombay Techfest Bhopal Outing"
+                required
+              >
+            </div>
+
+            <!-- Mode Switcher Tabs -->
+            <div class="segmented-nav" role="tablist">
+              <button type="button" id="tabQuick" class="segmented-tab active" role="tab" aria-selected="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Quick Bill Split
+              </button>
+              <button type="button" id="tabExpenses" class="segmented-tab" role="tab" aria-selected="false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                Detailed Expense Tracker
+              </button>
+            </div>
+
+            <!-- Quick Single Bill Section -->
+            <div id="quickBillSection">
+              <div class="form-grid-2">
+                <div class="form-field">
+                  <label for="billAmountInput" class="field-label">
+                    <span>Total Bill Amount</span>
+                    <span class="field-hint">(&gt; 0)</span>
+                  </label>
+                  <div class="input-affix-wrapper">
+                    <span class="currency-affix currency-symbol">₹</span>
+                    <input 
+                      type="number" 
+                      id="billAmountInput" 
+                      class="modern-input" 
+                      placeholder="0.00" 
+                      step="0.01" 
+                      min="0.01" 
+                      value="1200"
+                      required
+                    >
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <label for="peopleCountInput" class="field-label">
+                    <span>Number of People</span>
+                    <span class="field-hint">(&ge; 1)</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    id="peopleCountInput" 
+                    class="modern-input" 
+                    placeholder="1" 
+                    min="1" 
+                    step="1" 
+                    value="4"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed Expense Tracker Section -->
+            <div id="expensesTrackerSection" style="display: none;">
+              <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+                Record multiple line expenses. Total will automatically calculate and update the split.
+              </p>
+
+              <div class="expense-items-card">
+                <table class="modern-table">
+                  <thead>
+                    <tr>
+                      <th>Expense Item</th>
+                      <th>Amount</th>
+                      <th>Paid By</th>
+                      <th style="text-align: right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="expensesTableBody">
+                    <!-- Populated by script.js -->
+                  </tbody>
+                </table>
+
+                <div class="expense-row-input">
+                  <input type="text" id="newExpenseTitle" placeholder="Item description (e.g. Cab fare)">
+                  <div class="input-affix-wrapper">
+                    <span class="currency-affix currency-symbol" style="left: 8px; font-size: 12px;">₹</span>
+                    <input type="number" id="newExpenseAmount" placeholder="Amount" step="0.01" min="0.01" style="padding-left: 24px;">
+                  </div>
+                  <select id="newExpensePayer" class="modern-input" style="padding: 6px 10px;">
+                    <!-- Populated by script.js -->
+                  </select>
+                  <button type="button" id="btnAddExpense" class="button-secondary" style="background: var(--accent-indigo-light); color: var(--accent-indigo); border-color: var(--accent-indigo-border);">
+                    + Add
+                  </button>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-light); margin-bottom: 16px;">
+                <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Expenses:</span>
+                <span id="expensesGrandTotal" class="tabular-nums" style="font-size: 16px; font-weight: 800; color: var(--accent-indigo);">₹ 1,200.00</span>
+              </div>
+            </div>
+
+            <!-- Payer Contribution Method -->
+            <div class="payer-selection-box">
+              <div class="payer-section-header">
+                <h4>Payment Contribution &amp; Balances</h4>
+                <p>Select who covered the bill to identify surplus (reimbursement) vs deficit (dues).</p>
+              </div>
+
+              <div class="payer-radio-group">
+                <label class="payer-card-option">
+                  <input type="radio" name="payerType" id="payerNoneRadio" value="none">
+                  <div>
+                    <div class="payer-card-title">Equal Split (No specific payer)</div>
+                    <div class="payer-card-desc">Everyone equally owes their share. Pure division with zero individual settlement.</div>
+                  </div>
+                </label>
+
+                <label class="payer-card-option">
+                  <input type="radio" name="payerType" id="payerSingleRadio" value="single">
+                  <div>
+                    <div class="payer-card-title">Single Payer (One friend covered 100%)</div>
+                    <div class="payer-card-desc">One person paid the entire bill; all others reimburse this primary payer.</div>
+                  </div>
+                </label>
+
+                <label class="payer-card-option">
+                  <input type="radio" name="payerType" id="payerMultiRadio" value="multi" checked>
+                  <div>
+                    <div class="payer-card-title">Multiple Payers (Custom contributions)</div>
+                    <div class="payer-card-desc">Friends paid different amounts. Automatically computes net debts &amp; who pays whom.</div>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Single Payer Dropdown -->
+              <div id="singlePayerSelectContainer" style="display: none; margin-bottom: 12px;">
+                <label for="singlePayerSelect" class="field-label">Select Primary Payer:</label>
+                <select id="singlePayerSelect" class="modern-input">
+                  <!-- Populated by script.js -->
+                </select>
+              </div>
+
+              <!-- Participants Multi-Payer Table -->
+              <div id="participantsSection" class="participants-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span style="font-size: 12px; font-weight: 700; color: var(--text-title); text-transform: uppercase;">Participants &amp; Paid Amounts</span>
+                  <span style="font-size: 11px; color: var(--text-muted);">Synced with headcount</span>
+                </div>
+
+                <table class="modern-table">
+                  <thead>
+                    <tr>
+                      <th>Participant Name</th>
+                      <th id="thPaidHeader">Amount Paid (<span class="currency-symbol">₹</span>)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="participantsTableBody">
+                    <!-- Populated by script.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Primary Action Button -->
+            <button type="button" id="btnCalculate" class="cta-button-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+              Calculate &amp; Split Bill
+            </button>
+
+            <div style="display: flex; gap: 10px; margin-top: 14px;">
+              <button type="button" id="btnReset" class="button-secondary" style="flex: 1; justify-content: center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                Reset Inputs
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Results & Settlement Analysis -->
+      <section class="right-col">
+        <!-- Persistent Validation Error Banner -->
+        <!-- Shows message & no result if bill or headcount is empty, 0, or negative. Persists on reload! -->
+        <div id="validationMessageBox" class="validation-card hidden" role="alert">
+          <div class="validation-icon">&excl;</div>
+          <div>
+            <h4 class="validation-title">Calculation Notice</h4>
+            <div id="validationMessageText" class="validation-detail">
+              Please enter a valid bill amount and number of people.
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State Prompt -->
+        <div id="emptyResultsBox" class="empty-state-view">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <h3 class="empty-state-title">Awaiting Calculation</h3>
+          <p class="empty-state-text">
+            Enter the bill amount, participants count, and click <strong>"Calculate &amp; Split Bill"</strong> to unlock instant fair shares and debt settlement.
+          </p>
+        </div>
+
+        <!-- Live Results Container -->
+        <div id="resultsContainer" class="results-wrapper hidden">
+          <!-- Metric Highlight Cards -->
+          <div class="metrics-row">
+            <div class="metric-pill-card featured">
+              <div class="metric-title">Total Bill</div>
+              <div id="resTotalBill" class="metric-val tabular-nums">₹ 0.00</div>
+              <div id="resOccasionName" class="metric-desc">Event</div>
+            </div>
+
+            <div class="metric-pill-card">
+              <div class="metric-title">Fair Share / Person</div>
+              <div id="resPerPersonBase" class="metric-val tabular-nums" style="color: var(--accent-indigo);">₹ 0.00</div>
+              <div class="metric-desc">Exact individual target</div>
+            </div>
+
+            <div class="metric-pill-card">
+              <div class="metric-title">Participants</div>
+              <div id="resHeadcount" class="metric-val tabular-nums" style="color: var(--emerald-mint);">0</div>
+              <div class="metric-desc">Friends in split</div>
+            </div>
+          </div>
+
+          <!-- Exact Penny Reconciliation Card -->
+          <div class="exact-reconciliation-banner">
+            <div class="reconcile-left">
+              <span class="reconcile-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Exact Penny Audit
+              </span>
+              <span class="reconcile-text">Sum of individual shares adds up 100% to bill:</span>
+            </div>
+            <div class="reconcile-math">
+              <span id="auditSharesSum">₹ 0.00</span> / <span id="auditBillAmount">₹ 0.00</span>
+              <span style="font-size: 11px; color: #065f46; margin-left: 6px;">(Diff: <strong id="auditDiff">₹ 0.00</strong>)</span>
+            </div>
+          </div>
+
+          <!-- Visual Distribution Bar -->
+          <div class="distribution-visualizer-box">
+            <div class="distribution-header">
+              <span>Contribution vs. Share Proportions</span>
+              <span style="font-size: 11px; color: var(--text-muted);">Visual Balance</span>
+            </div>
+            <div id="distributionBar" class="distribution-bar">
+              <!-- Dynamically populated segments -->
+            </div>
+            <div id="distributionLegend" class="distribution-legend">
+              <!-- Dynamically populated legend -->
+            </div>
+          </div>
+
+          <!-- Individual Balances Table -->
+          <div class="modern-card" style="margin-bottom: 20px;">
+            <div class="card-topbar">
+              <div class="card-topbar-title">
+                <span class="card-topbar-icon" style="background: var(--emerald-mint-light); color: var(--emerald-mint);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </span>
+                Individual Shares &amp; Net Balances
+              </div>
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);">Audit Breakdown</span>
+            </div>
+
+            <div style="padding: 16px;">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Participant</th>
+                    <th style="text-align: right;">Paid (<span class="currency-symbol">₹</span>)</th>
+                    <th style="text-align: right;">Share (<span class="currency-symbol">₹</span>)</th>
+                    <th style="text-align: right;">Net Balance</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="sharesTableBody">
+                  <!-- Populated by script.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Settlement Instructions Card (Who Pays Whom) -->
+          <div class="settlement-container">
+            <div class="settlement-top">
+              <div class="settlement-heading">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Optimized Debt Settlement Plan (Who Pays Whom)
+              </div>
+              <span id="settlementCount" style="font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 6px;">0 payments</span>
+            </div>
+            <div class="settlement-body-list">
+              <ul id="settlementList" class="settlement-ul">
+                <!-- Populated by script.js -->
+              </ul>
+            </div>
+          </div>
+
+          <!-- Smart Settlement Insights & Notes -->
+          <div class="insights-notes-card">
+            <div class="insights-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--accent-indigo);"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+              Smart Insights &amp; Settlement Notes
+            </div>
+            <div class="insight-point">
+              <span class="insight-bullet">&bull;</span>
+              <span id="noteTopPayer">Primary payer covered majority of expenses.</span>
+            </div>
+            <div class="insight-point">
+              <span class="insight-bullet">&bull;</span>
+              <span id="noteReconciled">Shares sum exactly matches bill down to 0.00 with fair penny remainder allocation.</span>
+            </div>
+            <div class="insight-point">
+              <span class="insight-bullet">&bull;</span>
+              <span>All debts simplified to the minimum possible number of cash transfers.</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div class="results-actions-bar" style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button type="button" id="btnCopySummary" class="button-secondary" style="flex: 1; justify-content: center; background: var(--accent-indigo-light); color: var(--accent-indigo); border-color: var(--accent-indigo-border); padding: 12px 18px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy WhatsApp Summary
+            </button>
+            <button type="button" id="btnPrintReceipt" class="button-secondary" style="padding: 12px 18px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              Print Receipt
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Clean Modern Footer -->
+    <footer class="app-footer-clean">
+      <div>SplitLedger 2.0 &middot; Zero Code Challenge (IIT Bombay Techfest, SIRT Bhopal)</div>
+      <div>100% Offline Architecture: <code>index.html</code>, <code>style.css</code>, <code>script.js</code></div>
+    </footer>
+  </div>
+
+  <!-- Group Create / Edit Modal -->
+  <div id="groupModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 id="modalTitle" class="modal-title">New Group / Ledger</h3>
+        <button type="button" id="btnModalClose" class="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label for="groupNameInput" class="field-label">Group / Ledger Name</label>
+          <input type="text" id="groupNameInput" class="modern-input" placeholder="e.g. College Canteen Weekly, Project Team Alpha">
+        </div>
+        <div class="form-field">
+          <label for="groupMembersInput" class="field-label">
+            <span>Members / Friends</span>
+            <span class="field-hint">(Comma-separated names)</span>
+          </label>
+          <textarea id="groupMembersInput" class="modern-input" rows="3" placeholder="Atharv, Rahul, Priya, Amit"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btnModalCancel" class="button-secondary">Cancel</button>
+        <button type="button" id="btnModalSave" class="button-secondary" style="background: var(--accent-indigo); color: #ffffff; border-color: var(--accent-indigo);">Save Group</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal (In-App, safe for iframes) -->
+  <div id="deleteModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="modal-window" style="max-width: 420px;">
+      <div class="modal-header" style="background: var(--rose-debt-light);">
+        <h3 id="deleteModalTitle" class="modal-title" style="color: var(--rose-debt);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          Delete Ledger
+        </h3>
+        <button type="button" id="btnDeleteModalClose" class="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-title); margin-bottom: 6px;">
+          Are you sure you want to permanently delete:
+        </p>
+        <p id="deleteTargetGroupName" style="font-size: 14px; font-weight: 800; color: var(--rose-debt); background: var(--bg-card-subtle); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-light);">
+          Group Name
+        </p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
+          This will permanently remove this group's member list and expense ledger from local storage.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btnDeleteModalCancel" class="button-secondary">Cancel</button>
+        <button type="button" id="btnDeleteModalConfirm" class="button-secondary" style="background: var(--rose-debt); color: #ffffff; border-color: var(--rose-debt);">Confirm Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notification -->
+  <div id="toastNotice" class="toast-bar" role="status" aria-live="polite"></div>
+
+  <!-- Vanilla Script Link -->
+  <script src="./script.js"></script>
+</body>
+</html>
