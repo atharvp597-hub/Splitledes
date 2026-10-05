@@ -1271,8 +1271,7 @@ body {
   }
 
   .app-container {
-    max-width: 100vw;
-    overflow-x: hidden;
+    max-width: 100%;
   }
 
   .modern-header {
@@ -1310,14 +1309,5 @@ body {
   
   .modern-table {
     min-width: 500px;
-  }
-
-  * {
-    max-width: 100vw;
-  }
-  
-  /* Reset max-width for elements that might need to be wider in scrollable containers */
-  .modern-table * {
-    max-width: none;
   }
 }
