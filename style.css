@@ -1202,7 +1202,39 @@ body {
   margin-top: 1px;
 }
 
-/* Floating Toast */
+/* Button Disabled State (UI-17) */
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Accessibility & Screen Readers (UI-20) */
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Instant Chip Active Override (Cosmetic C-3) */
+.group-tab-chip.instant.active .group-member-count {
+  background: #ca8a04;
+  color: #ffffff;
+}
+
+/* Floating Toast (UI-6 fix: z-index elevated above modal's 99999) */
 .toast-bar {
   position: fixed;
   bottom: 24px;
@@ -1220,7 +1252,7 @@ body {
   transform: translateY(120px);
   opacity: 0;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 9999;
+  z-index: 100000;
 }
 
 .toast-bar.show {
@@ -1242,72 +1274,234 @@ body {
   color: var(--text-muted);
 }
 
-/* Print Only */
+/* Print Only (ISSUE-1 fix: corrected class to .groups-hub-strip) */
 @media print {
   body {
     background: #ffffff;
     padding: 0;
   }
   .modern-header,
-  .scenarios-strip,
+  .groups-hub-strip,
   .left-col,
   .results-actions-bar,
-  .app-footer-clean {
+  .app-footer-clean,
+  .toast-bar {
     display: none !important;
+  }
+  #printReceiptHeader {
+    display: block !important;
   }
   .app-grid {
     display: block;
   }
-  .modern-card {
+  .right-col {
+    width: 100%;
+  }
+  .modern-card,
+  .settlement-container {
     box-shadow: none;
-    border: 1px solid #000;
+    border: 1px solid #334155;
+    border-radius: 6px;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 
-/* Mobile Responsiveness Fixes */
-@media (max-width: 768px) {
-  body {
-    padding: 12px 10px 40px;
+/* ==========================================================================
+   Full Responsive Design System (Laptop, Tablet, Mobile)
+   ========================================================================== */
+
+/* 1. Tablet & Below (max-width: 1023px) */
+@media (max-width: 1023px) {
+  .app-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 
-  .app-container {
-    max-width: 100%;
+  .right-col::before {
+    content: "📊 Results & Settlement";
+    display: block;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    padding-top: 4px;
+    border-top: 2px solid var(--border-light);
+  }
+
+  .groups-hub-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .groups-controls {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .groups-controls button {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+/* 2. Mobile (max-width: 599px) */
+@media (max-width: 599px) {
+  body {
+    padding: 12px 10px 40px;
   }
 
   .modern-header {
     flex-direction: column;
     align-items: flex-start;
-    padding: 14px;
+    gap: 12px;
+    padding: 12px 14px;
   }
 
   .header-right {
     width: 100%;
     justify-content: space-between;
-    margin-top: 10px;
   }
 
-  .app-grid {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 20px;
+  .brand-subtext {
+    display: none;
+  }
+
+  .metrics-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .metric-pill-card.featured {
+    grid-column: 1 / -1;
   }
 
   .form-grid-2,
-  .form-grid-3,
-  .split-card-grid {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+  .form-grid-3 {
+    grid-template-columns: 1fr;
   }
 
-  .expense-items-card {
-    overflow-x: auto;
-    width: 100%;
-    -webkit-overflow-scrolling: touch;
+  .expense-row-input {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
-  
-  .modern-table {
-    min-width: 500px;
+
+  #newExpenseTitle {
+    grid-column: 1 / -1;
+  }
+
+  #btnAddExpense {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  .payer-card-option {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .payer-card-title {
+    font-size: 12px;
+  }
+
+  .payer-card-desc {
+    font-size: 10px;
+  }
+
+  .settlement-step-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .step-amount-pill {
+    align-self: flex-end;
+  }
+
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-window {
+    max-width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 }
+
+/* 3. Small Mobile (max-width: 380px) */
+@media (max-width: 380px) {
+  .metrics-row {
+    grid-template-columns: 1fr;
+  }
+
+  .groups-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .results-actions-bar {
+    flex-direction: column;
+  }
+
+  .results-actions-bar button {
+    width: 100%;
+  }
+}
+
+/* 4. Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-app: #0f172a;
+    --bg-card: #1e293b;
+    --bg-card-subtle: #1e293b;
+    --bg-input: #1e293b;
+    --text-title: #f1f5f9;
+    --text-body: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-light: #334155;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
+    --accent-indigo-light: rgba(79, 70, 229, 0.15);
+    --emerald-mint-light: rgba(5, 150, 105, 0.12);
+    --rose-debt-light: rgba(225, 29, 72, 0.12);
+  }
+
+  body {
+    background: var(--bg-app);
+  }
+
+  .modern-header,
+  .groups-hub-strip,
+  .modern-card,
+  .settlement-container,
+  .insights-notes-card {
+    background: #1e293b;
+  }
+
+  .modern-table td {
+    background: #1e293b;
+  }
+
+  .modal-window {
+    background: #1e293b;
+  }
+
+  .segmented-tab.active {
+    background: #334155;
+    color: #ffffff;
+  }
+
+  .payer-card-option {
+    background: #1e293b;
+  }
+}
+

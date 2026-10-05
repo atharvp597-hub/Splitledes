@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SplitLedger - Next-Gen Expense Tracker &amp; Bill Splitter</title>
+  <title>SplitLedger — Precision Bill Splitter &amp; Expense Tracker</title>
   <meta name="description" content="A modern, high-precision offline expense tracker and bill splitter with exact penny reconciliation and multi-payer debt settlement.">
   <meta property="og:title" content="SplitLedger - Expense Tracker &amp; Bill Splitter">
   <meta property="og:description" content="A modern, high-precision offline expense tracker and bill splitter.">
@@ -34,9 +34,9 @@
         <div class="brand-info">
           <h1>
             SplitLedger
-            <span class="brand-tag">v2.0 Modern</span>
+            <span class="brand-tag">v2.0</span>
           </h1>
-          <p class="brand-subtext">Precision Bill Splitter &amp; Multi-Payer Expense Settlement &middot; Zero Code Challenge</p>
+          <p class="brand-subtext">Precision Bill Splitter &amp; Multi-Payer Expense Settlement</p>
         </div>
       </div>
 
@@ -117,30 +117,30 @@
                 <span>Occasion / Event Title</span>
                 <span class="field-hint">e.g. Canteen Dinner, Goa Trip, Cab</span>
               </label>
-              <input 
-                type="text" 
-                id="occasionInput" 
-                class="modern-input" 
-                placeholder="e.g. IIT Bombay Techfest Bhopal Outing"
-                value="IIT Bombay Techfest Bhopal Outing"
-                required
+              <input
+                type="text"
+                id="occasionInput"
+                class="modern-input"
+                placeholder="e.g. Goa Trip, Canteen Lunch, Cab Fare"
+                value=""
+                autocomplete="off"
               >
             </div>
 
-            <!-- Mode Switcher Tabs -->
-            <div class="segmented-nav" role="tablist">
-              <button type="button" id="tabQuick" class="segmented-tab active" role="tab" aria-selected="true">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <!-- Mode Switcher Tabs (UI-21 fix: added aria-controls) -->
+            <div class="segmented-nav" role="tablist" aria-label="Input mode">
+              <button type="button" id="tabQuick" class="segmented-tab active" role="tab" aria-selected="true" aria-controls="quickBillSection">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 Quick Bill Split
               </button>
-              <button type="button" id="tabExpenses" class="segmented-tab" role="tab" aria-selected="false">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <button type="button" id="tabExpenses" class="segmented-tab" role="tab" aria-selected="false" aria-controls="expensesTrackerSection">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 Detailed Expense Tracker
               </button>
             </div>
 
             <!-- Quick Single Bill Section -->
-            <div id="quickBillSection">
+            <div id="quickBillSection" role="tabpanel" aria-labelledby="tabQuick">
               <div class="form-grid-2">
                 <div class="form-field">
                   <label for="billAmountInput" class="field-label">
@@ -156,7 +156,7 @@
                       placeholder="0.00" 
                       step="0.01" 
                       min="0.01" 
-                      value="1200"
+                      value=""
                       required
                     >
                   </div>
@@ -182,7 +182,7 @@
             </div>
 
             <!-- Detailed Expense Tracker Section -->
-            <div id="expensesTrackerSection" style="display: none;">
+            <div id="expensesTrackerSection" role="tabpanel" aria-labelledby="tabExpenses" style="display: none;">
               <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
                 Record multiple line expenses. Total will automatically calculate and update the split.
               </p>
@@ -219,7 +219,7 @@
 
               <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-card-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-light); margin-bottom: 16px;">
                 <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Expenses:</span>
-                <span id="expensesGrandTotal" class="tabular-nums" style="font-size: 16px; font-weight: 800; color: var(--accent-indigo);">₹ 1,200.00</span>
+                <span id="expensesGrandTotal" class="tabular-nums" style="font-size: 16px; font-weight: 800; color: var(--accent-indigo);">₹ 0.00</span>
               </div>
             </div>
 
@@ -230,31 +230,35 @@
                 <p>Select who covered the bill to identify surplus (reimbursement) vs deficit (dues).</p>
               </div>
 
-              <div class="payer-radio-group">
-                <label class="payer-card-option">
-                  <input type="radio" name="payerType" id="payerNoneRadio" value="none">
-                  <div>
-                    <div class="payer-card-title">Equal Split (No specific payer)</div>
-                    <div class="payer-card-desc">Everyone equally owes their share. Pure division with zero individual settlement.</div>
-                  </div>
-                </label>
+              <!-- UI-20 fix: fieldset + legend for screen readers -->
+              <fieldset style="border:none;padding:0;margin:0;">
+                <legend class="sr-only">Payment type</legend>
+                <div class="payer-radio-group">
+                  <label class="payer-card-option">
+                    <input type="radio" name="payerType" id="payerNoneRadio" value="none">
+                    <div>
+                      <div class="payer-card-title">Equal Split (No specific payer)</div>
+                      <div class="payer-card-desc">Everyone equally owes their share. Pure division with zero individual settlement.</div>
+                    </div>
+                  </label>
 
-                <label class="payer-card-option">
-                  <input type="radio" name="payerType" id="payerSingleRadio" value="single">
-                  <div>
-                    <div class="payer-card-title">Single Payer (One friend covered 100%)</div>
-                    <div class="payer-card-desc">One person paid the entire bill; all others reimburse this primary payer.</div>
-                  </div>
-                </label>
+                  <label class="payer-card-option">
+                    <input type="radio" name="payerType" id="payerSingleRadio" value="single">
+                    <div>
+                      <div class="payer-card-title">Single Payer (One friend covered 100%)</div>
+                      <div class="payer-card-desc">One person paid the entire bill; all others reimburse this primary payer.</div>
+                    </div>
+                  </label>
 
-                <label class="payer-card-option">
-                  <input type="radio" name="payerType" id="payerMultiRadio" value="multi" checked>
-                  <div>
-                    <div class="payer-card-title">Multiple Payers (Custom contributions)</div>
-                    <div class="payer-card-desc">Friends paid different amounts. Automatically computes net debts &amp; who pays whom.</div>
-                  </div>
-                </label>
-              </div>
+                  <label class="payer-card-option">
+                    <input type="radio" name="payerType" id="payerMultiRadio" value="multi" checked>
+                    <div>
+                      <div class="payer-card-title">Multiple Payers (Custom contributions)</div>
+                      <div class="payer-card-desc">Friends paid different amounts. Automatically computes net debts &amp; who pays whom.</div>
+                    </div>
+                  </label>
+                </div>
+              </fieldset>
 
               <!-- Single Payer Dropdown -->
               <div id="singlePayerSelectContainer" style="display: none; margin-bottom: 12px;">
@@ -452,13 +456,14 @@
           </div>
 
           <!-- Action Buttons Bar -->
+          <!-- UI-17 fix: buttons disabled until first calculation -->
           <div class="results-actions-bar" style="display: flex; gap: 12px; flex-wrap: wrap;">
-            <button type="button" id="btnCopySummary" class="button-secondary" style="flex: 1; justify-content: center; background: var(--accent-indigo-light); color: var(--accent-indigo); border-color: var(--accent-indigo-border); padding: 12px 18px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <button type="button" id="btnCopySummary" class="button-secondary" disabled style="flex: 1; justify-content: center; background: var(--accent-indigo-light); color: var(--accent-indigo); border-color: var(--accent-indigo-border); padding: 12px 18px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               Copy WhatsApp Summary
             </button>
-            <button type="button" id="btnPrintReceipt" class="button-secondary" style="padding: 12px 18px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            <button type="button" id="btnPrintReceipt" class="button-secondary" disabled style="padding: 12px 18px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
               Print Receipt
             </button>
           </div>
@@ -468,8 +473,8 @@
 
     <!-- Clean Modern Footer -->
     <footer class="app-footer-clean">
-      <div>SplitLedger 2.0 &middot; Zero Code Challenge (IIT Bombay Techfest, SIRT Bhopal)</div>
-      <div>100% Offline Architecture: <code>index.html</code>, <code>style.css</code>, <code>script.js</code></div>
+      <div>SplitLedger v2.0 &middot; 100% Offline, Zero Dependencies</div>
+      <div>Built with: <code>index.html</code> &middot; <code>style.css</code> &middot; <code>script.js</code></div>
     </footer>
   </div>
 
